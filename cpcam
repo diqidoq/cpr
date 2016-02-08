@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# CPCAM - camera footage card copy/backup utility
+
+# Copyright (c) 2016 Digidog (aka. diqidoq) - Released under GPL v3
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+DSTAMP="$(date +%y%m%d_%H%M%S)"
+CPCAM_TARGET="/media/BRC/fotos"
+CPCAM_TARGET_DIR="$CPCAM_TARGET/$DSTAMP"
+CARD_DIR="/media/digidog/EOS_DIGITAL/DCIM/100EOS5D"
+
+CheckDir(){
+printf '%s\n' "
+Checking '$1' ... "
+if [ -d "$1" ]; then
+  printf '%s\n' " ... Path and folder exist."
+else
+  printf '%s\n' "ERROR: '$1' seems not to be where it was expected, or it is not mounted.
+  "
+  exit 1
+fi
+}
+
+CheckDir $CPCAM_TARGET
+CheckDir $CARD_DIR
+
+# start copy/sync process with progress info and finish requirement
+time rsync -varh --progress $CARD_DIR/ $CPCAM_TARGET_DIR/
+
+# custom messages with listing of copied files after finish
+echo $(ls -1 $CPCAM_TARGET_DIR | wc -l) files copied.
+echo $(ls -1 $CARD_DIR | wc -l) original files found on the card.
+
+# open both sides of copy/sync in file manager for optical comparision
+if hash pcmanfm 2>/dev/null; then
+pcmanfm $CARD_DIR &
+pcmanfm $CPCAM_TARGET_DIR &
+fi
+
+exit 0
