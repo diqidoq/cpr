@@ -78,9 +78,15 @@ echo $(ls -1 $CPCAM_TARGET_DIR | wc -l) files copied.
 echo $(ls -1 $CARD_DIR | wc -l) original files found on the card.
 
 # open both sides of copy/sync in file manager for optical comparision
-if hash pcmanfm 2>/dev/null; then
-pcmanfm $CARD_DIR &
-pcmanfm $CPCAM_TARGET_DIR &
+OS=$(uname -s)
+if [[ $OS == *"Linux"* ]] ; then
+xdg-open $CARD_DIR &
+xdg-open $CPCAM_TARGET_DIR &
+elif [[ $OS == *"Mac"* ]] ; then
+open $CARD_DIR &
+open $CPCAM_TARGET_DIR &
+else
+echo "ERROR: Your OS isnt supported yet to open your default file manager."
 fi
 
 exit 0
