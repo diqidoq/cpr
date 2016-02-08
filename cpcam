@@ -29,8 +29,8 @@ ReadConfig(){
     echo "There isn't a config file yet. Please enter target and source path you want to use."
     read -p "Source path: " $SOURCE
     read -p "Target path: " $TARGET
-    echo "SOURCE=$SOURCE" > "${CONFIG_PATH}"
-    echo "TARGET=$TARGET" >> "${CONFIG_PATH}"
+    echo "SOURCE=$SOURCE" > $CONFIG_PATH
+    echo "TARGET=$TARGET" >> $CONFIG_PATH
   fi  
 }
 
