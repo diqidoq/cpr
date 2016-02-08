@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-CONFIG_PATH="~/.cpcam.cfg"
+CONFIG_PATH="$HOME/.cpcam.cfg"
 
 ReadConfig(){
   if [ -d "$1" ]; then
