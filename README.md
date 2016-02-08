@@ -6,8 +6,17 @@ A bash script terminal utility to auto-sync between injected cam cards (e.g. pho
 
 All @diqidoq bash script utilities are build the same way: Create a ``` ~/share ``` and a ``` ~/bin ``` folder in you machines user account if it doesn't exist already (``` mkdir -p ~/<folder> ```) and ``` git clone ``` the repo into the ``` ~/share ``` folder. Then create a sym link from the main executable file commonly named like the repo in ``` ~/share/<the-new-utility-git> ``` to the ``` ~/bin/<executable> ``` folder and ``` chmod a+x ~/bin/<executable> ```. Make sure your ``` ~/bin ``` folder is in the system path (``` export PATH=/home/yourusername/bin:PATH ```) to make the new utility terminal aware for commands.
 
+    mkdir -p ~/bin
+    mkdir -p ~/share
+    cd ~/share
+    git clone <this-git-repo>
+    ln -s ~/share/<this-git-repo>/<this-utility-name> ~/bin/<this-utility-name>
+    chmod a+x ~/share/<this-git-repo>/<this-utility-name> ~/bin/<this-utility-name>
+    source ~/.bashrc
+
 ## Requirements
 
+ + git (``` sudo apt-get install git ```)
  + Bash (Born Again Shell support)
  + X enviroment with Xterm like terminals, like default in Debian/Ubuntu derivates and Mac OSX systems.
  + FFmpeg, mplayer or mediainfo installed for media info support
