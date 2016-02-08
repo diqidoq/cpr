@@ -17,14 +17,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+CONFIG_PATH="~/.cpcam.cfg"
+
 ReadConfig(){
-echo "Reading config...." >&2
-source "~/share/cpcam/config.cfg"
-echo "Config for the target dir: $TARGET" >&2
-echo "Config for the source dir: $SOURCE" >&2
+  if [ -d "$1" ]; then
+    echo "Reading config...." >&2
+    source "$1"
+    echo "Config for the target dir: $TARGET" >&2
+    echo "Config for the source dir: $SOURCE" >&2
+  else
+    echo "There isn't a config file yet. Please enter target and source path you want to use."
+    read -p "Source path: " $SOURCE
+    read -p "Target path: " $TARGET
+    echo "SOURCE=$SOURCE" > "${CONFIG_PATH}"
+    echo "TARGET=$TARGET" >> "${CONFIG_PATH}"
+  fi  
 }
 
-ReadConfig
+ReadConfig $CONFIG_PATH
 DSTAMP="$(date +%y%m%d_%H%M%S)"
 CPCAM_TARGET="$TARGET"
 CPCAM_TARGET_DIR="$CPCAM_TARGET/$DSTAMP"
