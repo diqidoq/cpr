@@ -17,10 +17,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+ReadConfig(){
+echo "Reading config...." >&2
+source "config.cfg"
+echo "Config for the targer dir: $TARGET" >&2
+echo "Config for the source dir: $SOURCE" >&2
+}
+
+ReadConfig
 DSTAMP="$(date +%y%m%d_%H%M%S)"
-CPCAM_TARGET="/media/BRC/fotos"
+CPCAM_TARGET="$TARGET"
 CPCAM_TARGET_DIR="$CPCAM_TARGET/$DSTAMP"
-CARD_DIR="/media/digidog/EOS_DIGITAL/DCIM/100EOS5D"
+CARD_DIR="$SOURCE"
 
 CheckDir(){
 printf '%s\n' "
@@ -34,8 +42,23 @@ else
 fi
 }
 
+IsEmpty(){
+dir=$1
+ 
+[ $# -eq 0 ] && { echo "Usage: $0 directory"; exit 2; }
+[ ! -d "$dir" ] && { echo "$dir is not a directory."; exit 2; }
+ 
+if find "$dir" -maxdepth 0 -empty | read;
+then
+ echo "$dir empty."
+else
+ echo "$dir not empty."
+fi
+}
+
 CheckDir $CPCAM_TARGET
 CheckDir $CARD_DIR
+IsEmpty $CARD_DIR
 
 # start copy/sync process with progress info and finish requirement
 time rsync -varh --progress $CARD_DIR/ $CPCAM_TARGET_DIR/
