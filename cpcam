@@ -19,8 +19,8 @@
 
 ReadConfig(){
 echo "Reading config...." >&2
-source "config.cfg"
-echo "Config for the targer dir: $TARGET" >&2
+source "~/share/cpcam/config.cfg"
+echo "Config for the target dir: $TARGET" >&2
 echo "Config for the source dir: $SOURCE" >&2
 }
 
