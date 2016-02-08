@@ -9,7 +9,7 @@ All @diqidoq bash script utilities are build the same way: Create a ``` ~/share 
     mkdir -p ~/bin
     mkdir -p ~/share
     cd ~/share
-    git clone <this-git-repo>
+    git clone <this-git-repo> (link from above on the right <https>)
     ln -s ~/share/<this-git-repo>/<this-utility-name> ~/bin/<this-utility-name>
     chmod a+x ~/share/<this-git-repo>/<this-utility-name> ~/bin/<this-utility-name>
     source ~/.bashrc
