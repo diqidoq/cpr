@@ -16,10 +16,10 @@ All @diqidoq bash script utilities are build the same way: Create a ``` ~/share 
 
 ## What it does
 
- + It checks if the in config-file provided source- and target-devices and directories exist and if source dir is not empty.
- + It uses rsync to create a local copy of the file structure on source and compares afterwards with verbose output.
+ + It checks if the in config-file provided source- and base target-devices and dirs exist and if source dir is not empty.
+ + Creates date and time stamp sub dir in target base dir to make a unique target dir available.
+ + It uses rsync to create a local copy of the file structure on target from source and compares afterwards with verbose output.
  + Target dirs get time stamp and log files about time and media on import.
  + Opens your file manager to show you source and target and prints some info about both to make sure the import was complete.
  + Breaks up if one the 2 directories are suspicious in any way and warns you about it
  + Finally asks you if you want the source to get cleaned
-
