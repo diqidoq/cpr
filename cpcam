@@ -20,7 +20,7 @@
 CONFIG_PATH="$HOME/.cpcam.cfg"
 
 ReadConfig(){
-  if [ -d "$1" ]; then
+  if [ -f "$1" ] ; then
   TARGET=""
   SOURCE=""
     echo "Reading config...." >&2
@@ -45,7 +45,7 @@ CARD_DIR="$SOURCE"
 CheckDir(){
 printf '%s\n' "
 Checking '$1' ... "
-if [ -d "$1" ]; then
+if [ -d "$1" ] ; then
   printf '%s\n' " ... Path and folder exist."
 else
   printf '%s\n' "ERROR: '$1' seems not to be where it was expected, or it is not mounted.

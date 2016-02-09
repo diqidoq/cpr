@@ -1,6 +1,6 @@
 # cpcam
 
-A bash script terminal utility to auto-sync between injected cam cards (e.g. photo, film) and local backup structures.
+A bash terminal utility (still early BETA) to auto-sync between injected cam cards (e.g. photo, film) and local backup structures.
 
 ## Install instructions
 
