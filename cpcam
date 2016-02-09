@@ -55,25 +55,34 @@ EOF
 
 OS=$(uname -s)
 DSTAMP="$(date +%y%m%d_%H%M%S)"
+
 CONFIG_DIR="$HOME/.cpcam"
 CONFIG_FILE_PATH="$CONFIG_DIR/config.cfg"
+
 SOURCE=""
 TARGET=""
 
 function ReadConfig(){
   echo "Reading config...." >&2
   source "$1"
-  echo "Config setting for the source dir is '$SOURCE'" >&2
-  echo "Config setting for the target dir is '$TARGET'" >&2
+  if [ "$SOURCE" != "$TARGET" ] ; then
+    echo "Config setting for the source dir is '$SOURCE'" >&2
+    echo "Config setting for the target dir is '$TARGET'" >&2
+  else
+    printf "WARNING: SOURCE and TARGET are exactly the same! cpcam will quit. Please use <cpcam -d> to setup new directories."
+    exit 1
+  fi
 }
 
 function SetConfig(){
+
+  local SetConfig_REPLY
   read -p "Source path: " SOURCE
   read -p "Target path: " TARGET
 
   if [ ! -d "$TARGET" ] ; then
-    read -p "Your entered target dir seems not to exist, do you want to create it? <y/n>: " REPLY
-    if [ "$REPLY" == "y" ] || [ "$REPLY" == "yes" ] ; then
+    read -p "Your entered TARGET base directory seems not to exist, do you want to create it? <y/n>: " SetConfig_REPLY
+    if [ "$SetConfig_REPLY" == "y" ] || [ "$SetConfig_REPLY" == "yes" ] ; then
       mkdir -p "$TARGET"
     else
       echo "You choose [n]o. cpcam will reopen -d (set up directory) dialoque now for you again. You can break up with CTRL C."
@@ -111,7 +120,10 @@ function CheckDir(){
     printf '%s\n' "SUCCESS: Path and folder exist."
   else
     if [ "$1" == "$SOURCE" ] ; then
-      printf '%s\n' "ERROR: SOURCE '$1' seems not to be where it was expected, or doesn't exist / isn't mounted. cpcam will quit."
+      printf '%s\n' "ERROR: SOURCE '$1' seems not to be where it was expected, or doesn't exist / isn't mounted. cpcam will quit.
+
+      You can use <cpcam -d> to setup the directories again.
+      "
       exit 1
     else
       printf '%s\n' "ERROR: TARGET '$1' seems not to be where it was expected, or doesn't exist / isn't mounted. You can create the missing directory by pressing <y> or you can use <cpcam -d> to setup the directories again by pressing <n> in the next step."
