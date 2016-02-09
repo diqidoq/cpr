@@ -17,7 +17,9 @@ All @diqidoq bash script utilities are build the same way: Create a ``` ~/share 
 ## Requirements
 
  + git (``` sudo apt-get install git ```)
- + Bash (Born Again Shell support)
+ + rsync  (``` sudo apt-get install rsync ```)
+ + pv  (``` sudo apt-get install pv ```)
+ + Bash (Born Again Shell support, should be provided by default in most X systems)
  + X enviroment with Xterm like terminals, like default in Debian/Ubuntu derivates and Mac OSX systems.
  + FFmpeg, mplayer or mediainfo installed for media info support
  + USB ports for external cards and USB storage to import
@@ -28,6 +30,7 @@ All @diqidoq bash script utilities are build the same way: Create a ``` ~/share 
  + It checks if the in config-file provided source- and base target-devices and dirs exist and if source dir is not empty.
  + Creates date and time stamp sub dir in target base dir to make a unique target dir available.
  + It uses rsync to create a local copy of the file structure on target from source and compares afterwards with verbose output.
+ + It preserves permissions, owner, group, devices and file creation times
  + Target dirs get time stamp and log files about time and media on import.
  + Opens your file manager to show you source and target and prints some info about both to make sure the import was complete.
  + Breaks up if one the 2 directories are suspicious in any way and warns you about it

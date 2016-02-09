@@ -2,7 +2,8 @@
 
 # CPCAM - camera footage card copy/backup utility
 
-# Copyright (c) 2016 Digidog (aka. diqidoq) - Released under GPL v3
+# (c) 2016, author: Digidog (aka. diqidoq) in courtesy of MAROQQO digital media
+# This program is free software released under the GPL v3 License
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,20 +18,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-Help(){
+function Help(){
 cat << EOF
 
 CPCAM - camera footage card copy/backup utility
 -----------------------------------------------
-Copyright (c) 2016 Digidog (aka. diqidoq) - Released under GPL v3
+(c) 2016, author: Digidog (aka. diqidoq) in courtesy of MAROQQO digital media
+This program is free software released under the GPL v3 License
 
 Files:
 ~/share/cpcam/cpcam
 ~/share/cpcam/README.md
 ~/share/cpcam/LICENSE
-~/.cpcam.cfg
+~/.cpcam/config.cfg
+~/.cpcam/config.cfg.{DATE}.bkp (optional if -d has been used)
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 HELP
 ----
@@ -57,27 +60,40 @@ CONFIG_FILE_PATH="$CONFIG_DIR/config.cfg"
 SOURCE=""
 TARGET=""
 
-ReadConfig(){
+function ReadConfig(){
   echo "Reading config...." >&2
   source "$1"
   echo "Config setting for the source dir is '$SOURCE'" >&2
   echo "Config setting for the target dir is '$TARGET'" >&2
 }
 
-SetConfig(){
+function SetConfig(){
   read -p "Source path: " SOURCE
   read -p "Target path: " TARGET
+
+  if [ ! -d "$TARGET" ] ; then
+    read -p "Your entered target dir seems not to exist, do you want to create it? <y/n>: " REPLY
+    if [ "$REPLY" == "y" ] || [ "$REPLY" == "yes" ] ; then
+      mkdir -p "$TARGET"
+    else
+      echo "You choose [n]o. cpcam will reopen -d (set up directory) dialoque now for you again. You can break up with CTRL C."
+      SetConfig
+    fi
+  fi
+
   echo "SOURCE=$SOURCE" > "$CONFIG_FILE_PATH"
   echo "TARGET=$TARGET" >> "$CONFIG_FILE_PATH"
+
+  echo "Setup finished. You can simply type <cpcam> now to start a backup process."
 }
 
-InitConfig(){
+function InitConfig(){
   echo "There isn't a config file yet. Please enter target and source path you want to use."
   mkdir -p "$CONFIG_DIR"
   SetConfig
 }
 
-LoadConfig(){
+function LoadConfig(){
   if [ -f "$1" ] ; then
     ReadConfig "$1"
   else
@@ -85,58 +101,80 @@ LoadConfig(){
   fi
 }
 
-CheckDir(){
-  printf '%s\n' "
-  Checking '$1' ... "
+function CheckDir(){
+
+  local CREATE_DIR_REPLY
+
+  printf "\nChecking '$1' ...\n"
 
   if [ -d "$1" ] ; then
-    printf '%s\n' " ... Path and folder exist."
+    printf '%s\n' "SUCCESS: Path and folder exist."
   else
-    printf '%s\n' "ERROR: '$1' seems not to be where it was expected, or it is not mounted.
-    "
-    exit 1
+    if [ "$1" == "$SOURCE" ] ; then
+      printf '%s\n' "ERROR: SOURCE '$1' seems not to be where it was expected, or doesn't exist / isn't mounted. cpcam will quit."
+      exit 1
+    else
+      printf '%s\n' "ERROR: TARGET '$1' seems not to be where it was expected, or doesn't exist / isn't mounted. You can create the missing directory by pressing <y> or you can use <cpcam -d> to setup the directories again by pressing <n> in the next step."
+      read -p "Do you want to create the missing directory? <y/n>: " CREATE_DIR_REPLY
+      if [ "$CREATE_DIR_REPLY" == "y" ] || [ "$CREATE_DIR_REPLY" == "yes" ] ; then
+        mkdir -p "$1"
+        printf "TARGET dir $1 cerated..."
+      else
+        printf "cpcam will stop now. Use <cpcam -d> to set up new directories.\n"
+      exit 1
+      fi
+    fi
   fi
+
 }
 
-IsEmpty(){
-  dir=$1
+function IsEmpty(){
+
+  local TESTDIR
+  TESTDIR=$1
 
   [ $# -eq 0 ] && { echo "Usage: $0 directory"; exit 2; }
-  [ ! -d "$dir" ] && { echo "$dir is not a directory."; exit 2; }
+  [ ! -d "$TESTDIR" ] && { echo "$TESTDIR is not a directory."; exit 2; }
 
-  if find "$dir" -maxdepth 0 -empty | read ; then
-    echo "$dir empty."
+  if find "$TESTDIR" -maxdepth 0 -empty | read ; then
+    printf "\n Warning: $TESTDIR is empty!"
+    exit 0
   else
-    echo "$dir not empty."
+    printf "\n Source dir check successful. Source dir $TESTDIR is not empty."
   fi
+
 }
 
-RunSync(){
+function RunSync(){
   LoadConfig "$CONFIG_FILE_PATH"
 
-  CPCAM_TARGET="$TARGET"
-  CPCAM_TARGET_DIR="$CPCAM_TARGET/$DSTAMP"
-  CARD_DIR="$SOURCE"
+  SOURCE_DIR="$SOURCE"
+  TARGET_ROOT="$TARGET"
+  TARGET_DIR="$TARGET_ROOT/$DSTAMP"
 
-  CheckDir "$CPCAM_TARGET"
-  CheckDir "$CARD_DIR"
-  IsEmpty "$CARD_DIR"
+  CheckDir "$SOURCE_DIR"
+  CheckDir "$TARGET_ROOT"
+  IsEmpty "$SOURCE_DIR"
 
   # start copy/sync process with progress info and finish requirement
-  time rsync -varh --progress "$CARD_DIR"/ "$CPCAM_TARGET_DIR"/
+  rsync -a --no-i-r --stats --human-readable --info=progress2 "$SOURCE_DIR"/ "$TARGET_DIR"/ # | pv -ep -s 42 >/dev/null
 
   # custom messages with listing of copied files after finish
-  echo $(ls -1 "$CPCAM_TARGET_DIR" | wc -l) files copied.
-  echo $(ls -1 "$CARD_DIR" | wc -l) original files found on the card.
+  echo "--- --- ---"
+  echo "$(ls -1 "$SOURCE_DIR" | wc -l) items found on $SOURCE_DIR
+  Size: $(du -sh "$SOURCE_DIR")"
+  echo "$(ls -1 "$TARGET_DIR" | wc -l) items copied to $TARGET_DIR
+  Size: $(du -sh "$TARGET_DIR")"
+  echo "--- --- ---"
 
   # open both sides of copy/sync in file manager for optical comparision
 
   if [[ "$OS" == *"Linux"* ]] ; then
-    xdg-open "$CARD_DIR" &
-    xdg-open "$CPCAM_TARGET_DIR" &
+    xdg-open "$SOURCE_DIR" &
+    xdg-open "$TARGET_DIR" &
   elif [[ "$OS" == *"Mac"* ]] ; then
-    open "$CARD_DIR" &
-    open "$CPCAM_TARGET_DIR" &
+    open "$SOURCE_DIR" &
+    open "$TARGET_DIR" &
   else
     echo "ERROR: Your OS isnt supported yet to open your default file manager."
   fi
