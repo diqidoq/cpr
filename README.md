@@ -36,6 +36,19 @@ All @diqidoq bash script utilities are build the same way: Create a ``` ~/share 
 ## How it works
 
  + Simply drag your cam card into the cardreader slot or card reader USB dongle and connect it to the system
- + modify the cpcam.cfg to enter/modify SOURCE and TARGET dir, if not already done after first cpcam run dialoque
+ + modify the ``` ~/.cpcam.cfg ``` file to enter/modify SOURCE and TARGET dir, if not already done after first cpcam run dialoque
  + Now simply open terminal and type ``` cpcam ```
  + That's it. cpcam will sync both directories and will show you that import was successful.
+ + The idea is that it simplifies the frequently import on a shooting location without permanenty dealing with folders and dirs
+ + All import sessions are splittet into date-time stamped folders inside the TARGET dir and the script makes sure that the import is not interupted or corrupted like it can happen by manually importing can media files in the GUI.
+
+## License
+
+Copyright (c) 2016 Digidog (aka. diqidoq) - Released under GPL v3
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.
+
