@@ -21,6 +21,8 @@ CONFIG_PATH="$HOME/.cpcam.cfg"
 
 ReadConfig(){
   if [ -d "$1" ]; then
+  TARGET=""
+  SOURCE=""
     echo "Reading config...." >&2
     source "$1"
     echo "Config for the target dir: $TARGET" >&2
@@ -29,12 +31,12 @@ ReadConfig(){
     echo "There isn't a config file yet. Please enter target and source path you want to use."
     read -p "Source path: " SOURCE
     read -p "Target path: " TARGET
-    echo "SOURCE=$SOURCE" > $CONFIG_PATH
-    echo "TARGET=$TARGET" >> $CONFIG_PATH
-  fi  
+    echo "SOURCE=$SOURCE" > "$CONFIG_PATH"
+    echo "TARGET=$TARGET" >> "$CONFIG_PATH"
+  fi
 }
 
-ReadConfig $CONFIG_PATH
+ReadConfig "$CONFIG_PATH"
 DSTAMP="$(date +%y%m%d_%H%M%S)"
 CPCAM_TARGET="$TARGET"
 CPCAM_TARGET_DIR="$CPCAM_TARGET/$DSTAMP"
@@ -54,10 +56,10 @@ fi
 
 IsEmpty(){
 dir=$1
- 
+
 [ $# -eq 0 ] && { echo "Usage: $0 directory"; exit 2; }
 [ ! -d "$dir" ] && { echo "$dir is not a directory."; exit 2; }
- 
+
 if find "$dir" -maxdepth 0 -empty | read;
 then
  echo "$dir empty."
@@ -66,25 +68,25 @@ else
 fi
 }
 
-CheckDir $CPCAM_TARGET
-CheckDir $CARD_DIR
-IsEmpty $CARD_DIR
+CheckDir "$CPCAM_TARGET"
+CheckDir "$CARD_DIR"
+IsEmpty "$CARD_DIR"
 
 # start copy/sync process with progress info and finish requirement
-time rsync -varh --progress $CARD_DIR/ $CPCAM_TARGET_DIR/
+time rsync -varh --progress "$CARD_DIR"/ "$CPCAM_TARGET_DIR"/
 
 # custom messages with listing of copied files after finish
-echo $(ls -1 $CPCAM_TARGET_DIR | wc -l) files copied.
-echo $(ls -1 $CARD_DIR | wc -l) original files found on the card.
+echo $(ls -1 "$CPCAM_TARGET_DIR" | wc -l) files copied.
+echo $(ls -1 "$CARD_DIR" | wc -l) original files found on the card.
 
 # open both sides of copy/sync in file manager for optical comparision
 OS=$(uname -s)
-if [[ $OS == *"Linux"* ]] ; then
-xdg-open $CARD_DIR &
-xdg-open $CPCAM_TARGET_DIR &
-elif [[ $OS == *"Mac"* ]] ; then
-open $CARD_DIR &
-open $CPCAM_TARGET_DIR &
+if [[ "$OS" == *"Linux"* ]] ; then
+xdg-open "$CARD_DIR" &
+xdg-open "$CPCAM_TARGET_DIR" &
+elif [[ "$OS" == *"Mac"* ]] ; then
+open "$CARD_DIR" &
+open "$CPCAM_TARGET_DIR" &
 else
 echo "ERROR: Your OS isnt supported yet to open your default file manager."
 fi
