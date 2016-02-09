@@ -17,78 +17,154 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-CONFIG_PATH="$HOME/.cpcam.cfg"
+Help(){
+cat << EOF
+
+CPCAM - camera footage card copy/backup utility
+-----------------------------------------------
+Copyright (c) 2016 Digidog (aka. diqidoq) - Released under GPL v3
+
+Files:
+~/share/cpcam/cpcam
+~/share/cpcam/README.md
+~/share/cpcam/LICENSE
+~/.cpcam.cfg
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+HELP
+----
+
+On first run of cpcam it will ask you to provide a default SOURCE and TARGET path.
+
+ERROR: <directory> seems not to be where it was expected, or it is not mounted.
+SOLUTION: Make sure that the paths of your provided SOURCE and TARGET directories really exist. Some usb devices have other mount points in your system than you would expect. Test your expected mount paths if this error occures.
+
+Commands
+--------
+
+cpcam                 starts sync process between given paths
+cpcam -h | --help     prints help
+cpcam -d              reconfigures SOURCE and TARGET path
+
+EOF
+}
+
+OS=$(uname -s)
+DSTAMP="$(date +%y%m%d_%H%M%S)"
+CONFIG_DIR="$HOME/.cpcam"
+CONFIG_FILE_PATH="$CONFIG_DIR/config.cfg"
+SOURCE=""
+TARGET=""
 
 ReadConfig(){
+  echo "Reading config...." >&2
+  source "$1"
+  echo "Config setting for the source dir is '$SOURCE'" >&2
+  echo "Config setting for the target dir is '$TARGET'" >&2
+}
+
+SetConfig(){
+  read -p "Source path: " SOURCE
+  read -p "Target path: " TARGET
+  echo "SOURCE=$SOURCE" > "$CONFIG_FILE_PATH"
+  echo "TARGET=$TARGET" >> "$CONFIG_FILE_PATH"
+}
+
+InitConfig(){
+  echo "There isn't a config file yet. Please enter target and source path you want to use."
+  mkdir -p "$CONFIG_DIR"
+  SetConfig
+}
+
+LoadConfig(){
   if [ -f "$1" ] ; then
-  TARGET=""
-  SOURCE=""
-    echo "Reading config...." >&2
-    source "$1"
-    echo "Config for the target dir: $TARGET" >&2
-    echo "Config for the source dir: $SOURCE" >&2
+    ReadConfig "$1"
   else
-    echo "There isn't a config file yet. Please enter target and source path you want to use."
-    read -p "Source path: " SOURCE
-    read -p "Target path: " TARGET
-    echo "SOURCE=$SOURCE" > "$CONFIG_PATH"
-    echo "TARGET=$TARGET" >> "$CONFIG_PATH"
+    InitConfig
   fi
 }
 
-ReadConfig "$CONFIG_PATH"
-DSTAMP="$(date +%y%m%d_%H%M%S)"
-CPCAM_TARGET="$TARGET"
-CPCAM_TARGET_DIR="$CPCAM_TARGET/$DSTAMP"
-CARD_DIR="$SOURCE"
-
 CheckDir(){
-printf '%s\n' "
-Checking '$1' ... "
-if [ -d "$1" ] ; then
-  printf '%s\n' " ... Path and folder exist."
-else
-  printf '%s\n' "ERROR: '$1' seems not to be where it was expected, or it is not mounted.
-  "
-  exit 1
-fi
+  printf '%s\n' "
+  Checking '$1' ... "
+
+  if [ -d "$1" ] ; then
+    printf '%s\n' " ... Path and folder exist."
+  else
+    printf '%s\n' "ERROR: '$1' seems not to be where it was expected, or it is not mounted.
+    "
+    exit 1
+  fi
 }
 
 IsEmpty(){
-dir=$1
+  dir=$1
 
-[ $# -eq 0 ] && { echo "Usage: $0 directory"; exit 2; }
-[ ! -d "$dir" ] && { echo "$dir is not a directory."; exit 2; }
+  [ $# -eq 0 ] && { echo "Usage: $0 directory"; exit 2; }
+  [ ! -d "$dir" ] && { echo "$dir is not a directory."; exit 2; }
 
-if find "$dir" -maxdepth 0 -empty | read;
-then
- echo "$dir empty."
-else
- echo "$dir not empty."
-fi
+  if find "$dir" -maxdepth 0 -empty | read ; then
+    echo "$dir empty."
+  else
+    echo "$dir not empty."
+  fi
 }
 
-CheckDir "$CPCAM_TARGET"
-CheckDir "$CARD_DIR"
-IsEmpty "$CARD_DIR"
+RunSync(){
+  LoadConfig "$CONFIG_FILE_PATH"
 
-# start copy/sync process with progress info and finish requirement
-time rsync -varh --progress "$CARD_DIR"/ "$CPCAM_TARGET_DIR"/
+  CPCAM_TARGET="$TARGET"
+  CPCAM_TARGET_DIR="$CPCAM_TARGET/$DSTAMP"
+  CARD_DIR="$SOURCE"
 
-# custom messages with listing of copied files after finish
-echo $(ls -1 "$CPCAM_TARGET_DIR" | wc -l) files copied.
-echo $(ls -1 "$CARD_DIR" | wc -l) original files found on the card.
+  CheckDir "$CPCAM_TARGET"
+  CheckDir "$CARD_DIR"
+  IsEmpty "$CARD_DIR"
 
-# open both sides of copy/sync in file manager for optical comparision
-OS=$(uname -s)
-if [[ "$OS" == *"Linux"* ]] ; then
-xdg-open "$CARD_DIR" &
-xdg-open "$CPCAM_TARGET_DIR" &
-elif [[ "$OS" == *"Mac"* ]] ; then
-open "$CARD_DIR" &
-open "$CPCAM_TARGET_DIR" &
-else
-echo "ERROR: Your OS isnt supported yet to open your default file manager."
-fi
+  # start copy/sync process with progress info and finish requirement
+  time rsync -varh --progress "$CARD_DIR"/ "$CPCAM_TARGET_DIR"/
+
+  # custom messages with listing of copied files after finish
+  echo $(ls -1 "$CPCAM_TARGET_DIR" | wc -l) files copied.
+  echo $(ls -1 "$CARD_DIR" | wc -l) original files found on the card.
+
+  # open both sides of copy/sync in file manager for optical comparision
+
+  if [[ "$OS" == *"Linux"* ]] ; then
+    xdg-open "$CARD_DIR" &
+    xdg-open "$CPCAM_TARGET_DIR" &
+  elif [[ "$OS" == *"Mac"* ]] ; then
+    open "$CARD_DIR" &
+    open "$CPCAM_TARGET_DIR" &
+  else
+    echo "ERROR: Your OS isnt supported yet to open your default file manager."
+  fi
+
+exit 0
+}
+
+case "$1" in
+	-h|--help)
+		Help
+		exit 1
+	;;
+
+		-d|--dir)
+    if [ -f "$CONFIG_FILE_PATH" ] ; then cp "$CONFIG_FILE_PATH" "$CONFIG_FILE_PATH.$DSTAMP.bkp" ; fi
+		SetConfig
+		exit 1
+	;;
+
+		'')
+		RunSync
+		exit 0
+	;;
+
+		*)
+		Help
+		exit 1
+	;;
+esac
 
 exit 0
