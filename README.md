@@ -32,3 +32,10 @@ All @diqidoq bash script utilities are build the same way: Create a ``` ~/share 
  + Opens your file manager to show you source and target and prints some info about both to make sure the import was complete.
  + Breaks up if one the 2 directories are suspicious in any way and warns you about it
  + Finally asks you if you want the source to get cleaned
+
+## How it works
+
+ + Simply drag your cam card into the cardreader slot or card reader USB dongle and connect it to the system
+ + modify the cpcam.cfg to enter/modify SOURCE and TARGET dir, if not already done after first cpcam run dialoque
+ + Now simply open terminal and type ``` cpcam ```
+ + That's it. cpcam will sync both directories and will show you that import was successful.
