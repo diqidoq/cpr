@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # CPCAM - camera footage card copy/backup utility
 
 # (c) 2016, author: Digidog (aka. diqidoq) in courtesy of MAROQQO digital media
@@ -55,16 +54,14 @@ EOF
 
 OS=$(uname -s)
 DSTAMP="$(date +%y%m%d_%H%M%S)"
-
 CONFIG_DIR="$HOME/.cpcam"
 CONFIG_FILE_PATH="$CONFIG_DIR/config.cfg"
-
 SOURCE=""
 TARGET=""
 
 function ReadConfig(){
   echo "Reading config...." >&2
-  source "$1"
+  . "$1"
   if [ "$SOURCE" != "$TARGET" ] ; then
     echo "Config setting for the source dir is '$SOURCE'" >&2
     echo "Config setting for the target dir is '$TARGET'" >&2
@@ -75,11 +72,9 @@ function ReadConfig(){
 }
 
 function SetConfig(){
-
   local SetConfig_REPLY
   read -p "Source path: " SOURCE
   read -p "Target path: " TARGET
-
   if [ ! -d "$TARGET" ] ; then
     read -p "Your entered TARGET base directory seems not to exist, do you want to create it? <y/n>: " SetConfig_REPLY
     if [ "$SetConfig_REPLY" == "y" ] || [ "$SetConfig_REPLY" == "yes" ] ; then
@@ -89,10 +84,8 @@ function SetConfig(){
       SetConfig
     fi
   fi
-
   echo "SOURCE=$SOURCE" > "$CONFIG_FILE_PATH"
   echo "TARGET=$TARGET" >> "$CONFIG_FILE_PATH"
-
   echo "Setup finished. You can simply type <cpcam> now to start a backup process."
 }
 
@@ -111,11 +104,8 @@ function LoadConfig(){
 }
 
 function CheckDir(){
-
   local CREATE_DIR_REPLY
-
   printf "\nChecking '$1' ...\n"
-
   if [ -d "$1" ] ; then
     printf '%s\n' "SUCCESS: Path and folder exist."
   else
@@ -137,33 +127,26 @@ function CheckDir(){
       fi
     fi
   fi
-
 }
 
 function IsEmpty(){
-
   local TESTDIR
   TESTDIR=$1
-
   [ $# -eq 0 ] && { echo "Usage: $0 directory"; exit 2; }
   [ ! -d "$TESTDIR" ] && { echo "$TESTDIR is not a directory."; exit 2; }
-
   if find "$TESTDIR" -maxdepth 0 -empty | read ; then
     printf "\n Warning: $TESTDIR is empty!"
     exit 0
   else
     printf "\n Source dir check successful. Source dir $TESTDIR is not empty."
   fi
-
 }
 
 function RunSync(){
   LoadConfig "$CONFIG_FILE_PATH"
-
   SOURCE_DIR="$SOURCE"
   TARGET_ROOT="$TARGET"
   TARGET_DIR="$TARGET_ROOT/$DSTAMP"
-
   CheckDir "$SOURCE_DIR"
   CheckDir "$TARGET_ROOT"
   IsEmpty "$SOURCE_DIR"
@@ -199,18 +182,15 @@ case "$1" in
 		Help
 		exit 1
 	;;
-
 		-d|--dir)
     if [ -f "$CONFIG_FILE_PATH" ] ; then cp "$CONFIG_FILE_PATH" "$CONFIG_FILE_PATH.$DSTAMP.bkp" ; fi
 		SetConfig
 		exit 1
 	;;
-
 		'')
 		RunSync
 		exit 0
 	;;
-
 		*)
 		Help
 		exit 1
