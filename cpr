@@ -17,27 +17,36 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+APP="cpcam"
+CONFIG="config.cfg"
+OS=$(uname -s)
+DSTAMP="$(date +%y%m%d_%H%M%S)"
+CONFIG_DIR="$HOME/.config/$APP"
+CONFIG_FILE_PATH="$CONFIG_DIR/$CONFIG"
+SOURCE=""
+TARGET=""
+
 function Help(){
 cat << EOF
 
-CPCAM - camera footage card copy/backup utility
+$APP - camera footage card copy/backup utility
 -----------------------------------------------
 (c) 2016, author: Digidog (aka. diqidoq) in courtesy of MAROQQO digital media
 This program is free software released under the GPL v3 License
 
 Files:
-~/share/cpcam/cpcam
-~/share/cpcam/README.md
-~/share/cpcam/LICENSE
-~/.cpcam/config.cfg
-~/.cpcam/config.cfg.{DATE}.bkp (optional if -d has been used)
+~/share/$APP/$APP
+~/share/$APP/README.md
+~/share/$APP/LICENSE
+~/.$APP/config.cfg
+~/.$APP/config.cfg.{DATE}.bkp (optional if -d has been used)
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 HELP
 ----
 
-On first run of cpcam it will ask you to provide a default SOURCE and TARGET path.
+On first run of $APP it will ask you to provide a default SOURCE and TARGET path.
 
 ERROR: <directory> seems not to be where it was expected, or it is not mounted.
 SOLUTION: Make sure that the paths of your provided SOURCE and TARGET directories really exist. Some usb devices have other mount points in your system than you would expect. Test your expected mount paths if this error occures.
@@ -45,19 +54,13 @@ SOLUTION: Make sure that the paths of your provided SOURCE and TARGET directorie
 Commands
 --------
 
-cpcam                 starts sync process between given paths
-cpcam -h | --help     prints help
-cpcam -d              reconfigures SOURCE and TARGET path
+$APP                 	starts sync process between given paths
+$APP -h | --help     	prints help
+$APP -d              	reconfigures SOURCE and TARGET path
+$APP -r | -i | --info   reading and printing SOURCE and TARGET path info
 
 EOF
 }
-
-OS=$(uname -s)
-DSTAMP="$(date +%y%m%d_%H%M%S)"
-CONFIG_DIR="$HOME/.cpcam"
-CONFIG_FILE_PATH="$CONFIG_DIR/config.cfg"
-SOURCE=""
-TARGET=""
 
 function ReadConfig(){
   echo "Reading config...." >&2
@@ -66,7 +69,7 @@ function ReadConfig(){
     echo "Config setting for the source dir is '$SOURCE'" >&2
     echo "Config setting for the target dir is '$TARGET'" >&2
   else
-    printf "WARNING: SOURCE and TARGET are exactly the same! cpcam will quit. Please use <cpcam -d> to setup new directories."
+    printf "WARNING: SOURCE and TARGET are exactly the same! $APP will quit. Please use <$APP -d> to setup new directories."
     exit 1
   fi
 }
@@ -80,13 +83,13 @@ function SetConfig(){
     if [ "$SetConfig_REPLY" == "y" ] || [ "$SetConfig_REPLY" == "yes" ] ; then
       mkdir -p "$TARGET"
     else
-      echo "You choose [n]o. cpcam will reopen -d (set up directory) dialoque now for you again. You can break up with CTRL C."
+      echo "You choose [n]o. $APP will reopen -d (set up directory) dialoque now for you again. You can break up with CTRL C."
       SetConfig
     fi
   fi
   echo "SOURCE=$SOURCE" > "$CONFIG_FILE_PATH"
   echo "TARGET=$TARGET" >> "$CONFIG_FILE_PATH"
-  echo "Setup finished. You can simply type <cpcam> now to start a backup process."
+  echo "Setup finished. You can simply type <$APP> now to start a backup process."
 }
 
 function InitConfig(){
@@ -110,9 +113,9 @@ function CheckDir(){
     printf '%s\n' "SUCCESS: Path and folder exist."
   else
     if [ "$1" == "$SOURCE" ] ; then
-      printf '%s\n' "ERROR: SOURCE '$1' seems not to be where it was expected, or doesn't exist / isn't mounted. cpcam will quit.
+      printf '%s\n' "ERROR: SOURCE '$1' seems not to be where it was expected, or doesn't exist / isn't mounted. $APP will quit.
 
-      You can use <cpcam -d> to setup the directories again.
+      You can use <$APP -d> to setup the directories again.
       "
       exit 1
     else
@@ -146,7 +149,7 @@ function RunSync(){
   LoadConfig "$CONFIG_FILE_PATH"
   SOURCE_DIR="$SOURCE"
   TARGET_ROOT="$TARGET"
-  TARGET_DIR="$TARGET_ROOT/$DSTAMP"
+  if [ -z "$1" ] ; then TARGET_DIR="$TARGET_ROOT/$DSTAMP" ; else TARGET_DIR="$TARGET_ROOT/$1" ; fi
   CheckDir "$SOURCE_DIR"
   CheckDir "$TARGET_ROOT"
   IsEmpty "$SOURCE_DIR"
@@ -163,7 +166,6 @@ function RunSync(){
   echo "--- --- ---"
 
   # open both sides of copy/sync in file manager for optical comparision
-
   if [[ "$OS" == *"Linux"* ]] ; then
     xdg-open "$SOURCE_DIR" &
     xdg-open "$TARGET_DIR" &
@@ -191,7 +193,16 @@ case "$1" in
 		RunSync
 		exit 0
 	;;
-		*)
+    '-n')
+		read -e -p "(-n): You choose to name a custom sub folder by yourself. This deactivates the cpcam datestamp sub folder mechanism. Please enter the name you wish to use (if empty date stamp will be used): " SUBDIR_NAME
+    RunSync "$SUBDIR_NAME"
+		exit 0
+	;;
+    '-r'|'-i'|'--info')
+	        LoadConfig $CONFIG_FILE_PATH
+		exit 0
+	;;
+       *)
 		Help
 		exit 1
 	;;
